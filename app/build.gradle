@@ -25,7 +25,8 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
-    compile files('libs/google-gson-2.2.4.jar')
+    compile 'com.google.code.gson:gson:2.2.4'
+
     compile files('libs/HERE-sdk.jar')
     compile files('libs/HERE-sdk-javadoc.jar')
     compile files('libs/jts-1.13.jar')
