@@ -157,7 +157,7 @@ public class BasicMapActivity extends Activity implements GoogleApiClient.Connec
         }
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
-        if (mLastLocation != null) {
+        if (mLastLocation != null && map != null) {
 
             map.setCenter(new GeoCoordinate(mLastLocation.getLatitude(), mLastLocation.getLongitude(), mLastLocation.getAltitude()),
                     Map.Animation.NONE);
