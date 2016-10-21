@@ -3,14 +3,19 @@ package com.raychenon.here;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.here.android.mpa.common.GeoCoordinate;
 import com.here.android.mpa.common.OnEngineInitListener;
 import com.here.android.mpa.mapping.Map;
@@ -24,7 +29,7 @@ import java.util.List;
  * @author Raymond Chenon
  */
 
-public class BasicMapActivity extends Activity {
+public class BasicMapActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final String LOG_TAG = BasicMapActivity.class.getSimpleName();
 
     // permissions request code
@@ -33,8 +38,8 @@ public class BasicMapActivity extends Activity {
     /**
      * Permissions that need to be explicitly requested from end user.
      */
-    private static final String[] REQUIRED_SDK_PERMISSIONS = new String[] {
-            Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE };
+    private static final String[] REQUIRED_SDK_PERMISSIONS = new String[]{
+            Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     // map embedded in the map fragment
     private Map map = null;
@@ -42,14 +47,36 @@ public class BasicMapActivity extends Activity {
     // map fragment embedded in this activity
     private MapFragment mapFragment = null;
 
+    private GoogleApiClient mGoogleApiClient;
+
+    private Location mLastLocation;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkPermissions();
     }
 
+    protected void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
+    }
+
+    protected void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
     private void initialize() {
         setContentView(R.layout.activity_main);
+        if (mGoogleApiClient == null) {
+
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
 
         // Search for the map fragment to finish setup by calling init().
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapfragment);
@@ -72,6 +99,28 @@ public class BasicMapActivity extends Activity {
 
 
         mapFragment.setAllowEnterTransitionOverlap(true);
+    }
+
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_ASK_PERMISSIONS:
+                for (int index = permissions.length - 1; index >= 0; --index) {
+                    if (grantResults[index] != PackageManager.PERMISSION_GRANTED) {
+                        // exit the app if one permission is not granted
+                        Toast.makeText(this, "Required permission '" + permissions[index]
+                                + "' not granted, exiting", Toast.LENGTH_LONG).show();
+                        finish();
+                        return;
+                    }
+                }
+                // all permissions were granted
+                initialize();
+                break;
+        }
     }
 
     /**
@@ -100,23 +149,31 @@ public class BasicMapActivity extends Activity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[],
-                                           @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_CODE_ASK_PERMISSIONS:
-                for (int index = permissions.length - 1; index >= 0; --index) {
-                    if (grantResults[index] != PackageManager.PERMISSION_GRANTED) {
-                        // exit the app if one permission is not granted
-                        Toast.makeText(this, "Required permission '" + permissions[index]
-                                + "' not granted, exiting", Toast.LENGTH_LONG).show();
-                        finish();
-                        return;
-                    }
-                }
-                // all permissions were granted
-                initialize();
-                break;
+    public void onConnected(@Nullable Bundle bundle) {
+        final List<String> missingPermissions = new ArrayList<String>();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            checkPermissions();
+        }
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        if (mLastLocation != null) {
+
+            map.setCenter(new GeoCoordinate(mLastLocation.getLatitude(), mLastLocation.getLongitude(), mLastLocation.getAltitude()),
+                    Map.Animation.NONE);
+            // Set the zoom level to the average between min and max
+            map.setZoomLevel((map.getMaxZoomLevel() + map.getMinZoomLevel()) / 2);
+
         }
     }
 
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
 }
