@@ -3,7 +3,6 @@ package com.raychenon.here;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -43,9 +42,6 @@ public class BasicMapActivity extends Activity {
 
     // map fragment embedded in this activity
     private MapFragment mapFragment = null;
-
-
-    private Location mLastLocation;
 
     private PositioningManager mPositioningManager;
     private boolean paused = false;
@@ -109,10 +105,13 @@ public class BasicMapActivity extends Activity {
 
 
     private void initPosition() {
-        if (mPositioningManager != null)
+        if (mPositioningManager != null) {
+            // add the listener to a synchronized object
+            PositioningManager.getInstance().addListener(
+                    new WeakReference<PositioningManager.OnPositionChangedListener>(positionListener));
+
             mPositioningManager = PositioningManager.getInstance();
-        mPositioningManager.addListener(
-                new WeakReference<PositioningManager.OnPositionChangedListener>(positionListener));
+        }
     }
 
     private void initialize() {
@@ -191,6 +190,6 @@ public class BasicMapActivity extends Activity {
     }
 
     private double getZoomLevel() {
-        return map.getMaxZoomLevel();
+        return map.getMaxZoomLevel() * 0.95;
     }
 }
