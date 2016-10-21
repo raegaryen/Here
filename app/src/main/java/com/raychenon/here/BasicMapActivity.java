@@ -69,6 +69,9 @@ public class BasicMapActivity extends Activity {
                 }
             }
         });
+
+
+        mapFragment.setAllowEnterTransitionOverlap(true);
     }
 
     /**
