@@ -6,21 +6,18 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.Menu;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
-import com.here.android.mpa.common.GeoCoordinate;
+import com.here.android.mpa.common.GeoPosition;
 import com.here.android.mpa.common.OnEngineInitListener;
+import com.here.android.mpa.common.PositioningManager;
 import com.here.android.mpa.mapping.Map;
 import com.here.android.mpa.mapping.MapFragment;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +26,7 @@ import java.util.List;
  * @author Raymond Chenon
  */
 
-public class BasicMapActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class BasicMapActivity extends Activity {
     private static final String LOG_TAG = BasicMapActivity.class.getSimpleName();
 
     // permissions request code
@@ -47,9 +44,31 @@ public class BasicMapActivity extends Activity implements GoogleApiClient.Connec
     // map fragment embedded in this activity
     private MapFragment mapFragment = null;
 
-    private GoogleApiClient mGoogleApiClient;
 
     private Location mLastLocation;
+
+    private PositioningManager mPositioningManager;
+    private boolean paused = false;
+
+    private PositioningManager.OnPositionChangedListener positionListener = new
+            PositioningManager.OnPositionChangedListener() {
+
+                public void onPositionUpdated(PositioningManager.LocationMethod method,
+                                              GeoPosition position, boolean isMapMatched) {
+                    // set the center only when the app is in the foreground
+                    // to reduce CPU consumption
+                    if (!paused) {
+                        map.setCenter(position.getCoordinate(),
+                                Map.Animation.LINEAR);
+                        map.getPositionIndicator().setVisible(true);
+                    }
+                }
+
+                public void onPositionFixChanged(PositioningManager.LocationMethod method,
+                                                 PositioningManager.LocationStatus status) {
+
+                }
+            };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -57,26 +76,48 @@ public class BasicMapActivity extends Activity implements GoogleApiClient.Connec
         checkPermissions();
     }
 
-    protected void onStart() {
-        mGoogleApiClient.connect();
-        super.onStart();
+
+    // To remove the positioning listener
+    public void onDestroy() {
+        if (mPositioningManager != null) {
+            // Cleanup
+            mPositioningManager.removeListener(
+                    positionListener);
+        }
+        map = null;
+        super.onDestroy();
     }
 
-    protected void onStop() {
-        mGoogleApiClient.disconnect();
-        super.onStop();
+    // Resume positioning listener on wake up
+    public void onResume() {
+        super.onResume();
+        paused = false;
+        if (mPositioningManager != null) {
+            mPositioningManager.start(
+                    PositioningManager.LocationMethod.GPS_NETWORK);
+        }
+    }
+
+    // To pause positioning listener
+    public void onPause() {
+        if (mPositioningManager != null) {
+            mPositioningManager.stop();
+        }
+        super.onPause();
+        paused = true;
+    }
+
+
+    private void initPosition() {
+        if (mPositioningManager != null)
+            mPositioningManager = PositioningManager.getInstance();
+        mPositioningManager.addListener(
+                new WeakReference<PositioningManager.OnPositionChangedListener>(positionListener));
     }
 
     private void initialize() {
         setContentView(R.layout.activity_main);
-        if (mGoogleApiClient == null) {
 
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .build();
-        }
 
         // Search for the map fragment to finish setup by calling init().
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapfragment);
@@ -87,21 +128,21 @@ public class BasicMapActivity extends Activity implements GoogleApiClient.Connec
                 if (error == OnEngineInitListener.Error.NONE) {
                     // retrieve a reference of the map from the map fragment
                     map = mapFragment.getMap();
-                    // Set the map center to the Berlin region (no animation)
-                    map.setCenter(new GeoCoordinate(52.5200, 13.4050, 0.0),
-                            Map.Animation.LINEAR);
                     // Set the zoom level to the average between min and max
                     map.setZoomLevel(getZoomLevel());
+                    map.setMapScheme(map.getMapSchemes().get(2));
                 } else {
                     Log.e(LOG_TAG, "Cannot initialize MapFragment (" + error + ")");
                 }
+
+                initPosition();
+                map.getPositionIndicator().setVisible(true);
             }
         });
 
 
         mapFragment.setAllowEnterTransitionOverlap(true);
     }
-
 
 
     @Override
@@ -149,36 +190,7 @@ public class BasicMapActivity extends Activity implements GoogleApiClient.Connec
         }
     }
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        final List<String> missingPermissions = new ArrayList<String>();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            checkPermissions();
-        }
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
-        if (mLastLocation != null && map != null) {
-
-            map.setCenter(new GeoCoordinate(mLastLocation.getLatitude(), mLastLocation.getLongitude(), mLastLocation.getAltitude()),
-                    Map.Animation.LINEAR);
-            // Set the zoom level to the average between min and max
-            map.setZoomLevel(getZoomLevel());
-
-        }
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
-
-    private double getZoomLevel(){
-        return (map.getMaxZoomLevel() + map.getMinZoomLevel()) * 4/5;
+    private double getZoomLevel() {
+        return map.getMaxZoomLevel();
     }
 }
