@@ -80,6 +80,7 @@ public class BasicMapActivity extends Activity implements GoogleApiClient.Connec
 
         // Search for the map fragment to finish setup by calling init().
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapfragment);
+        mapFragment.setRetainInstance(true);
         mapFragment.init(new OnEngineInitListener() {
             @Override
             public void onEngineInitializationCompleted(OnEngineInitListener.Error error) {
@@ -88,9 +89,9 @@ public class BasicMapActivity extends Activity implements GoogleApiClient.Connec
                     map = mapFragment.getMap();
                     // Set the map center to the Berlin region (no animation)
                     map.setCenter(new GeoCoordinate(52.5200, 13.4050, 0.0),
-                            Map.Animation.NONE);
+                            Map.Animation.LINEAR);
                     // Set the zoom level to the average between min and max
-                    map.setZoomLevel((map.getMaxZoomLevel() + map.getMinZoomLevel()) / 2);
+                    map.setZoomLevel(getZoomLevel());
                 } else {
                     Log.e(LOG_TAG, "Cannot initialize MapFragment (" + error + ")");
                 }
@@ -160,9 +161,9 @@ public class BasicMapActivity extends Activity implements GoogleApiClient.Connec
         if (mLastLocation != null && map != null) {
 
             map.setCenter(new GeoCoordinate(mLastLocation.getLatitude(), mLastLocation.getLongitude(), mLastLocation.getAltitude()),
-                    Map.Animation.NONE);
+                    Map.Animation.LINEAR);
             // Set the zoom level to the average between min and max
-            map.setZoomLevel((map.getMaxZoomLevel() + map.getMinZoomLevel()) / 2);
+            map.setZoomLevel(getZoomLevel());
 
         }
     }
@@ -175,5 +176,9 @@ public class BasicMapActivity extends Activity implements GoogleApiClient.Connec
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
+    }
+
+    private double getZoomLevel(){
+        return (map.getMaxZoomLevel() + map.getMinZoomLevel()) * 4/5;
     }
 }
