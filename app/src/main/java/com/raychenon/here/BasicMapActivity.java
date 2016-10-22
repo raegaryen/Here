@@ -1,17 +1,12 @@
 package com.raychenon.here;
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.util.Log;
-import android.view.KeyEvent;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
+import static android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH;
+
+import java.lang.ref.WeakReference;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import com.here.android.mpa.common.GeoCoordinate;
 import com.here.android.mpa.common.GeoPosition;
@@ -20,27 +15,49 @@ import com.here.android.mpa.common.PositioningManager;
 import com.here.android.mpa.mapping.Map;
 import com.here.android.mpa.mapping.MapCircle;
 import com.here.android.mpa.mapping.MapFragment;
+import com.here.android.mpa.search.DiscoveryResultPage;
+import com.here.android.mpa.search.ErrorCode;
 
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.raychenon.here.http.CallBackListener;
+import com.raychenon.here.http.SearchEngine;
+
+import android.Manifest;
+
+import android.app.Activity;
+
+import android.content.pm.PackageManager;
+
+import android.os.Bundle;
+
+import android.support.annotation.NonNull;
+
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+
+import android.util.Log;
+
+import android.view.KeyEvent;
+
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
 /**
- * @author Raymond Chenon
+ * @author  Raymond Chenon
  */
 
 public class BasicMapActivity extends Activity {
     private static final String LOG_TAG = BasicMapActivity.class.getSimpleName();
 
     // permissions request code
-    private final static int REQUEST_CODE_ASK_PERMISSIONS = 1;
+    private static final int REQUEST_CODE_ASK_PERMISSIONS = 1;
 
     /**
      * Permissions that need to be explicitly requested from end user.
      */
-    private static final String[] REQUIRED_SDK_PERMISSIONS = new String[]{
-            Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    private static final String[] REQUIRED_SDK_PERMISSIONS = new String[] {
+        Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
 
     // map embedded in the map fragment
     private Map map = null;
@@ -54,41 +71,41 @@ public class BasicMapActivity extends Activity {
 
     private GeoCoordinate lastCoordinate;
 
-    private PositioningManager.OnPositionChangedListener positionListener = new
-            PositioningManager.OnPositionChangedListener() {
+    private PositioningManager.OnPositionChangedListener positionListener =
+        new PositioningManager.OnPositionChangedListener() {
 
-                public void onPositionUpdated(PositioningManager.LocationMethod method,
-                                              GeoPosition position, boolean isMapMatched) {
-                    // set the center only when the app is in the foreground
-                    // to reduce CPU consumption
-                    if (!paused) {
-                        lastCoordinate = position.getCoordinate();
-                        map.setCenter(position.getCoordinate(), Map.Animation.LINEAR);
+            public void onPositionUpdated(final PositioningManager.LocationMethod method, final GeoPosition position,
+                    final boolean isMapMatched) {
 
-                        drawUserPosition();
-                    }
+                // set the center only when the app is in the foreground
+                // to reduce CPU consumption
+                if (!paused) {
+                    lastCoordinate = position.getCoordinate();
+                    map.setCenter(position.getCoordinate(), Map.Animation.LINEAR);
+
+                    drawUserPosition();
                 }
+            }
 
-                public void onPositionFixChanged(PositioningManager.LocationMethod method,
-                                                 PositioningManager.LocationStatus status) {
-
-                }
-            };
+            public void onPositionFixChanged(final PositioningManager.LocationMethod method,
+                    final PositioningManager.LocationStatus status) { }
+        };
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkPermissions();
+        initSearchBar();
     }
-
 
     // To remove the positioning listener
     public void onDestroy() {
         if (mPositioningManager != null) {
+
             // Cleanup
-            mPositioningManager.removeListener(
-                    positionListener);
+            mPositioningManager.removeListener(positionListener);
         }
+
         map = null;
         super.onDestroy();
     }
@@ -98,8 +115,7 @@ public class BasicMapActivity extends Activity {
         super.onResume();
         paused = false;
         if (mPositioningManager != null) {
-            mPositioningManager.start(
-                    PositioningManager.LocationMethod.GPS_NETWORK);
+            mPositioningManager.start(PositioningManager.LocationMethod.GPS_NETWORK);
         }
     }
 
@@ -108,26 +124,46 @@ public class BasicMapActivity extends Activity {
         if (mPositioningManager != null) {
             mPositioningManager.stop();
         }
+
         super.onPause();
         paused = true;
     }
 
-
-    private void initBar() {
-        EditText searchBar = (EditText) findViewById(R.id.searchBar);
+    private void initSearchBar() {
+        final EditText searchBar = (EditText) findViewById(R.id.searchBar);
         searchBar.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
-                return false;
-            }
-        });
+                @Override
+                public boolean onEditorAction(final TextView textView, final int actionId, final KeyEvent keyEvent) {
+                    boolean handled = false;
+
+                    if (actionId == IME_ACTION_SEARCH) {
+                        requestPlaces(searchBar.getText().toString());
+                        handled = true;
+                    }
+
+                    return handled;
+                }
+            });
+    }
+
+    private void requestPlaces(final String query) {
+        SearchEngine.request(lastCoordinate, query, new CallBackListener() {
+                @Override
+                public void onSuccess(final DiscoveryResultPage data) {
+                    Toast.makeText(BasicMapActivity.this, "bla " + data.toString(), Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                public void onError(final ErrorCode errorCode) { }
+            });
     }
 
     private void initPosition() {
         if (mPositioningManager != null) {
+
             // add the listener to a synchronized object
             PositioningManager.getInstance().addListener(
-                    new WeakReference<PositioningManager.OnPositionChangedListener>(positionListener));
+                new WeakReference<PositioningManager.OnPositionChangedListener>(positionListener));
 
             mPositioningManager = PositioningManager.getInstance();
         }
@@ -136,30 +172,30 @@ public class BasicMapActivity extends Activity {
     private void initialize() {
         setContentView(R.layout.activity_main);
 
-
         // Search for the map fragment to finish setup by calling init().
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapfragment);
         mapFragment.setRetainInstance(true);
         mapFragment.init(new OnEngineInitListener() {
-            @Override
-            public void onEngineInitializationCompleted(OnEngineInitListener.Error error) {
-                if (error == OnEngineInitListener.Error.NONE) {
-                    // retrieve a reference of the map from the map fragment
-                    map = mapFragment.getMap();
-                    // Set the zoom level to the average between min and max
-                    map.setZoomLevel(getZoomLevel());
-                    map.setMapScheme(map.getMapSchemes().get(2));
-                    lastCoordinate = map.getCenter();
-                } else {
-                    Log.e(LOG_TAG, "Cannot initialize MapFragment (" + error + ")");
+                @Override
+                public void onEngineInitializationCompleted(final OnEngineInitListener.Error error) {
+                    if (error == OnEngineInitListener.Error.NONE) {
+
+                        // retrieve a reference of the map from the map fragment
+                        map = mapFragment.getMap();
+
+                        // Set the zoom level to the average between min and max
+                        map.setZoomLevel(getZoomLevel());
+                        map.setMapScheme(map.getMapSchemes().get(2));
+                        lastCoordinate = map.getCenter();
+                    } else {
+                        Log.e(LOG_TAG, "Cannot initialize MapFragment (" + error + ")");
+                    }
+
+                    initPosition();
+
+                    drawUserPosition();
                 }
-
-                initPosition();
-
-                drawUserPosition();
-            }
-        });
-
+            });
 
         mapFragment.setAllowEnterTransitionOverlap(true);
     }
@@ -175,25 +211,29 @@ public class BasicMapActivity extends Activity {
             } else {
                 map.removeMapObject(mapCircle);
             }
+
             mapCircle.setCenter(lastCoordinate);
             map.addMapObject(mapCircle);
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[],
-                                           @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(final int requestCode, @NonNull final String[] permissions,
+            @NonNull final int[] grantResults) {
         switch (requestCode) {
-            case REQUEST_CODE_ASK_PERMISSIONS:
+
+            case REQUEST_CODE_ASK_PERMISSIONS :
                 for (int index = permissions.length - 1; index >= 0; --index) {
                     if (grantResults[index] != PackageManager.PERMISSION_GRANTED) {
+
                         // exit the app if one permission is not granted
-                        Toast.makeText(this, "Required permission '" + permissions[index]
-                                + "' not granted, exiting", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "Required permission '" + permissions[index] + "' not granted, exiting",
+                            Toast.LENGTH_LONG).show();
                         finish();
                         return;
                     }
                 }
+
                 // all permissions were granted
                 initialize();
                 break;
@@ -206,6 +246,7 @@ public class BasicMapActivity extends Activity {
     protected void checkPermissions() {
 
         final List<String> missingPermissions = new ArrayList<String>();
+
         // check all required dynamic permissions
         for (final String permission : REQUIRED_SDK_PERMISSIONS) {
             final int result = ContextCompat.checkSelfPermission(this, permission);
@@ -215,15 +256,14 @@ public class BasicMapActivity extends Activity {
         }
 
         if (!missingPermissions.isEmpty()) {
+
             // request all missing permissions
-            final String[] permissions = missingPermissions
-                    .toArray(new String[missingPermissions.size()]);
+            final String[] permissions = missingPermissions.toArray(new String[missingPermissions.size()]);
             ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_ASK_PERMISSIONS);
         } else {
             final int[] grantResults = new int[REQUIRED_SDK_PERMISSIONS.length];
             Arrays.fill(grantResults, PackageManager.PERMISSION_GRANTED);
-            onRequestPermissionsResult(REQUEST_CODE_ASK_PERMISSIONS, REQUIRED_SDK_PERMISSIONS,
-                    grantResults);
+            onRequestPermissionsResult(REQUEST_CODE_ASK_PERMISSIONS, REQUIRED_SDK_PERMISSIONS, grantResults);
         }
     }
 
