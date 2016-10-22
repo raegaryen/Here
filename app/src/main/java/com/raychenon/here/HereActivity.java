@@ -13,7 +13,6 @@ import java.util.List;
 import com.here.android.mpa.common.GeoCoordinate;
 import com.here.android.mpa.common.GeoPosition;
 import com.here.android.mpa.common.Image;
-import com.here.android.mpa.common.MapEngine;
 import com.here.android.mpa.common.OnEngineInitListener;
 import com.here.android.mpa.common.PositioningManager;
 import com.here.android.mpa.mapping.Map;
@@ -206,19 +205,6 @@ public class HereActivity extends Activity implements HereView {
 
         mapFragment.setAllowEnterTransitionOverlap(true);
 
-        // to draw the markers
-        MapEngine mapEngine = MapEngine.getInstance();
-        mapEngine.init(this, new OnEngineInitListener() {
-                @Override
-                public void onEngineInitializationCompleted(final Error error) {
-                    if (error == OnEngineInitListener.Error.NONE) {
-                        // Post initialization code goes here
-                    } else {
-                        // handle factory initialization failure
-                    }
-                }
-
-            });
     }
 
     private void hideSoftKeyboard() {
