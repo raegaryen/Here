@@ -16,10 +16,10 @@ public class HerePresenter implements Presenter<HereView> {
 
     private HereView mvpView;
 
-    private CallBackListener callBackListener = new CallBackListener() {
+    private CallBackListener callBackListener = new CallBackListener<DiscoveryResultPage>() {
         @Override
         public void onSuccess(final DiscoveryResultPage data) {
-            mvpView.displayData();
+            mvpView.displayData(data);
         }
 
         @Override

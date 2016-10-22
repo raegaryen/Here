@@ -15,13 +15,17 @@ import com.here.android.mpa.common.PositioningManager;
 import com.here.android.mpa.mapping.Map;
 import com.here.android.mpa.mapping.MapCircle;
 import com.here.android.mpa.mapping.MapFragment;
+import com.here.android.mpa.search.DiscoveryResultPage;
 
 import com.raychenon.here.presenter.HerePresenter;
+import com.raychenon.here.ui.SnackbarWrapper;
 import com.raychenon.here.view.HereView;
 
 import android.Manifest;
 
 import android.app.Activity;
+
+import android.content.Context;
 
 import android.content.pm.PackageManager;
 
@@ -35,6 +39,9 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import android.view.KeyEvent;
+import android.view.View;
+
+import android.view.inputmethod.InputMethodManager;
 
 import android.widget.EditText;
 import android.widget.TextView;
@@ -144,6 +151,7 @@ public class HereActivity extends Activity implements HereView {
 
                     if (actionId == IME_ACTION_SEARCH) {
                         presenter.requestPlaces(searchBar.getText().toString(), lastCoordinate);
+                        hideSoftKeyboard();
                         handled = true;
                     }
 
@@ -192,6 +200,14 @@ public class HereActivity extends Activity implements HereView {
             });
 
         mapFragment.setAllowEnterTransitionOverlap(true);
+    }
+
+    private void hideSoftKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 
     private void drawUserPosition() {
@@ -266,12 +282,12 @@ public class HereActivity extends Activity implements HereView {
     }
 
     @Override
-    public void displayData() {
-        Toast.makeText(this, "Success", Toast.LENGTH_LONG).show();
+    public void displayData(final DiscoveryResultPage data) {
+        SnackbarWrapper.make(this, "Success " + data.getItems().size(), SnackbarWrapper.Duration.SHORT).show();
     }
 
     @Override
     public void showErrorMessage(final String error) {
-        Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+        SnackbarWrapper.make(this, error, SnackbarWrapper.Duration.SHORT).show();
     }
 }

@@ -9,4 +9,9 @@
 
     <color name="circleInner">#DE199fff</color>
     <color name="circleOuter">#444444</color>
+
+    <!-- Snackbar -->
+    <color name="snackbar_background">#333333</color>
+    <color name="snackbar_text">#FF6900</color>
+
 </resources>
