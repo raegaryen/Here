@@ -16,10 +16,14 @@
 
     <EditText
         android:id="@+id/searchBar"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/search_for"
         android:padding="@dimen/default_padding"
+        android:drawablePadding="@dimen/default_padding"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:drawableLeft="@drawable/ic_glass"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="@dimen/activity_vertical_margin"
         android:imeOptions="actionSearch"

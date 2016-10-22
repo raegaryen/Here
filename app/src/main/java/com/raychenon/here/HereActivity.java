@@ -2,6 +2,8 @@ package com.raychenon.here;
 
 import static android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH;
 
+import java.io.IOException;
+
 import java.lang.ref.WeakReference;
 
 import java.util.ArrayList;
@@ -10,12 +12,15 @@ import java.util.List;
 
 import com.here.android.mpa.common.GeoCoordinate;
 import com.here.android.mpa.common.GeoPosition;
+import com.here.android.mpa.common.Image;
+import com.here.android.mpa.common.MapEngine;
 import com.here.android.mpa.common.OnEngineInitListener;
 import com.here.android.mpa.common.PositioningManager;
 import com.here.android.mpa.mapping.Map;
-import com.here.android.mpa.mapping.MapCircle;
 import com.here.android.mpa.mapping.MapFragment;
+import com.here.android.mpa.mapping.MapMarker;
 import com.here.android.mpa.search.DiscoveryResultPage;
+import com.here.android.mpa.search.PlaceLink;
 
 import com.raychenon.here.presenter.HerePresenter;
 import com.raychenon.here.ui.SnackbarWrapper;
@@ -72,7 +77,7 @@ public class HereActivity extends Activity implements HereView {
 
     private PositioningManager mPositioningManager;
     private boolean paused = false;
-    private MapCircle mapCircle;
+    private MapMarker userMarker;
 
     private GeoCoordinate lastCoordinate;
 
@@ -200,6 +205,20 @@ public class HereActivity extends Activity implements HereView {
             });
 
         mapFragment.setAllowEnterTransitionOverlap(true);
+
+        // to draw the markers
+        MapEngine mapEngine = MapEngine.getInstance();
+        mapEngine.init(this, new OnEngineInitListener() {
+                @Override
+                public void onEngineInitializationCompleted(final Error error) {
+                    if (error == OnEngineInitListener.Error.NONE) {
+                        // Post initialization code goes here
+                    } else {
+                        // handle factory initialization failure
+                    }
+                }
+
+            });
     }
 
     private void hideSoftKeyboard() {
@@ -215,15 +234,14 @@ public class HereActivity extends Activity implements HereView {
             map.getPositionIndicator().setVisible(true);
             map.getPositionIndicator().setAccuracyIndicatorVisible(true);
         } else {
-            if (mapCircle == null) {
-
-                mapCircle = new MapCircle(5, lastCoordinate);
+            if (userMarker == null) {
+                userMarker = new MapMarker(lastCoordinate, constructImage(R.drawable.user_loc));
             } else {
-                map.removeMapObject(mapCircle);
+                map.removeMapObject(userMarker);
             }
 
-            mapCircle.setCenter(lastCoordinate);
-            map.addMapObject(mapCircle);
+            userMarker.setCoordinate(lastCoordinate);
+            map.addMapObject(userMarker);
         }
     }
 
@@ -283,11 +301,37 @@ public class HereActivity extends Activity implements HereView {
 
     @Override
     public void displayData(final DiscoveryResultPage data) {
-        SnackbarWrapper.make(this, "Success " + data.getItems().size(), SnackbarWrapper.Duration.SHORT).show();
+        SnackbarWrapper.make(this, "Success " + data.getPlaceLinks().size(), SnackbarWrapper.Duration.SHORT).show();
+
+        for (PlaceLink result : data.getPlaceLinks()) {
+            addToMap(result.getPosition());
+        }
+        // TODO set the bounding box
+
     }
 
     @Override
     public void showErrorMessage(final String error) {
         SnackbarWrapper.make(this, error, SnackbarWrapper.Duration.SHORT).show();
+    }
+
+    private void addToMap(final GeoCoordinate geoCoordinate) {
+        com.here.android.mpa.common.Image myImage = constructImage(R.drawable.cat_06);
+
+        MapMarker myMapMarker = new MapMarker(geoCoordinate, myImage);
+        map.addMapObject(myMapMarker);
+
+    }
+
+    private Image constructImage(final int resId) {
+        com.here.android.mpa.common.Image myImage = new com.here.android.mpa.common.Image();
+        try {
+            myImage.setImageResource(resId);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return myImage;
     }
 }

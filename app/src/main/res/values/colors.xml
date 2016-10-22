@@ -4,7 +4,7 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
 
-    <color name="searchBar">#CCFFFFFF</color>
+    <color name="searchBar">#DDFFFFFF</color>
     <color name="searchBarStroke">#787878</color>
 
     <color name="circleInner">#DE199fff</color>
