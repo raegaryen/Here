@@ -18,6 +18,7 @@ import com.here.android.mpa.common.PositioningManager;
 import com.here.android.mpa.mapping.Map;
 import com.here.android.mpa.mapping.MapFragment;
 import com.here.android.mpa.mapping.MapMarker;
+import com.here.android.mpa.mapping.MapObject;
 import com.here.android.mpa.search.DiscoveryResultPage;
 import com.here.android.mpa.search.PlaceLink;
 
@@ -81,6 +82,8 @@ public class HereActivity extends Activity implements HereView {
     private GeoCoordinate lastCoordinate;
 
     private HerePresenter presenter;
+
+    private List<MapObject> mapObjectList = new ArrayList<>();
 
     private PositioningManager.OnPositionChangedListener positionListener =
         new PositioningManager.OnPositionChangedListener() {
@@ -289,9 +292,14 @@ public class HereActivity extends Activity implements HereView {
     public void displayData(final DiscoveryResultPage data) {
         SnackbarWrapper.make(this, "Success " + data.getPlaceLinks().size(), SnackbarWrapper.Duration.SHORT).show();
 
+        map.removeMapObjects(mapObjectList);
+        mapObjectList.clear();
+
         for (PlaceLink result : data.getPlaceLinks()) {
-            addToMap(result.getPosition());
+            addToList(result.getPosition());
         }
+
+        map.addMapObjects(mapObjectList);
         // TODO set the bounding box
 
     }
@@ -301,11 +309,11 @@ public class HereActivity extends Activity implements HereView {
         SnackbarWrapper.make(this, error, SnackbarWrapper.Duration.SHORT).show();
     }
 
-    private void addToMap(final GeoCoordinate geoCoordinate) {
+    private void addToList(final GeoCoordinate geoCoordinate) {
         com.here.android.mpa.common.Image myImage = constructImage(R.drawable.cat_06);
 
         MapMarker myMapMarker = new MapMarker(geoCoordinate, myImage);
-        map.addMapObject(myMapMarker);
+        mapObjectList.add(myMapMarker);
 
     }
 
