@@ -6,4 +6,7 @@
 
     <color name="searchBar">#CCFFFFFF</color>
     <color name="searchBarStroke">#787878</color>
+
+    <color name="circleInner">#DE199fff</color>
+    <color name="circleOuter">#444444</color>
 </resources>

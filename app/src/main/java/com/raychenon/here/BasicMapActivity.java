@@ -8,12 +8,17 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.here.android.mpa.common.GeoCoordinate;
 import com.here.android.mpa.common.GeoPosition;
 import com.here.android.mpa.common.OnEngineInitListener;
 import com.here.android.mpa.common.PositioningManager;
 import com.here.android.mpa.mapping.Map;
+import com.here.android.mpa.mapping.MapCircle;
 import com.here.android.mpa.mapping.MapFragment;
 
 import java.lang.ref.WeakReference;
@@ -45,6 +50,9 @@ public class BasicMapActivity extends Activity {
 
     private PositioningManager mPositioningManager;
     private boolean paused = false;
+    private MapCircle mapCircle;
+
+    private GeoCoordinate lastCoordinate;
 
     private PositioningManager.OnPositionChangedListener positionListener = new
             PositioningManager.OnPositionChangedListener() {
@@ -54,9 +62,10 @@ public class BasicMapActivity extends Activity {
                     // set the center only when the app is in the foreground
                     // to reduce CPU consumption
                     if (!paused) {
+                        lastCoordinate = position.getCoordinate();
                         map.setCenter(position.getCoordinate(), Map.Animation.LINEAR);
-                        map.getPositionIndicator().setVisible(true);
-                        map.getPositionIndicator().setAccuracyIndicatorVisible(true);
+
+                        drawUserPosition();
                     }
                 }
 
@@ -104,6 +113,16 @@ public class BasicMapActivity extends Activity {
     }
 
 
+    private void initBar() {
+        EditText searchBar = (EditText) findViewById(R.id.searchBar);
+        searchBar.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                return false;
+            }
+        });
+    }
+
     private void initPosition() {
         if (mPositioningManager != null) {
             // add the listener to a synchronized object
@@ -130,13 +149,14 @@ public class BasicMapActivity extends Activity {
                     // Set the zoom level to the average between min and max
                     map.setZoomLevel(getZoomLevel());
                     map.setMapScheme(map.getMapSchemes().get(2));
+                    lastCoordinate = map.getCenter();
                 } else {
                     Log.e(LOG_TAG, "Cannot initialize MapFragment (" + error + ")");
                 }
 
                 initPosition();
-                map.getPositionIndicator().setVisible(true);
-                map.getPositionIndicator().setAccuracyIndicatorVisible(true);
+
+                drawUserPosition();
             }
         });
 
@@ -144,6 +164,21 @@ public class BasicMapActivity extends Activity {
         mapFragment.setAllowEnterTransitionOverlap(true);
     }
 
+    private void drawUserPosition() {
+        if (map.getPositionIndicator().isVisible()) {
+            map.getPositionIndicator().setVisible(true);
+            map.getPositionIndicator().setAccuracyIndicatorVisible(true);
+        } else {
+            if (mapCircle == null) {
+
+                mapCircle = new MapCircle(5, lastCoordinate);
+            } else {
+                map.removeMapObject(mapCircle);
+            }
+            mapCircle.setCenter(lastCoordinate);
+            map.addMapObject(mapCircle);
+        }
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[],
