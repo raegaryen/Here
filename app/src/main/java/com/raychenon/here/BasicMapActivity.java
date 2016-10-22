@@ -168,6 +168,7 @@ public class BasicMapActivity extends Activity {
      * Checks the dynamically controlled permissions and requests missing permissions from end user.
      */
     protected void checkPermissions() {
+
         final List<String> missingPermissions = new ArrayList<String>();
         // check all required dynamic permissions
         for (final String permission : REQUIRED_SDK_PERMISSIONS) {
@@ -176,6 +177,7 @@ public class BasicMapActivity extends Activity {
                 missingPermissions.add(permission);
             }
         }
+
         if (!missingPermissions.isEmpty()) {
             // request all missing permissions
             final String[] permissions = missingPermissions
