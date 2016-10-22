@@ -54,9 +54,9 @@ public class BasicMapActivity extends Activity {
                     // set the center only when the app is in the foreground
                     // to reduce CPU consumption
                     if (!paused) {
-                        map.setCenter(position.getCoordinate(),
-                                Map.Animation.LINEAR);
+                        map.setCenter(position.getCoordinate(), Map.Animation.LINEAR);
                         map.getPositionIndicator().setVisible(true);
+                        map.getPositionIndicator().setAccuracyIndicatorVisible(true);
                     }
                 }
 
@@ -136,6 +136,7 @@ public class BasicMapActivity extends Activity {
 
                 initPosition();
                 map.getPositionIndicator().setVisible(true);
+                map.getPositionIndicator().setAccuracyIndicatorVisible(true);
             }
         });
 
