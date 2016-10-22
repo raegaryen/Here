@@ -15,11 +15,9 @@ import com.here.android.mpa.common.PositioningManager;
 import com.here.android.mpa.mapping.Map;
 import com.here.android.mpa.mapping.MapCircle;
 import com.here.android.mpa.mapping.MapFragment;
-import com.here.android.mpa.search.DiscoveryResultPage;
-import com.here.android.mpa.search.ErrorCode;
 
-import com.raychenon.here.http.CallBackListener;
-import com.raychenon.here.http.SearchEngine;
+import com.raychenon.here.presenter.HerePresenter;
+import com.raychenon.here.view.HereView;
 
 import android.Manifest;
 
@@ -46,8 +44,8 @@ import android.widget.Toast;
  * @author  Raymond Chenon
  */
 
-public class BasicMapActivity extends Activity {
-    private static final String LOG_TAG = BasicMapActivity.class.getSimpleName();
+public class HereActivity extends Activity implements HereView {
+    private static final String LOG_TAG = HereActivity.class.getSimpleName();
 
     // permissions request code
     private static final int REQUEST_CODE_ASK_PERMISSIONS = 1;
@@ -70,6 +68,8 @@ public class BasicMapActivity extends Activity {
     private MapCircle mapCircle;
 
     private GeoCoordinate lastCoordinate;
+
+    private HerePresenter presenter;
 
     private PositioningManager.OnPositionChangedListener positionListener =
         new PositioningManager.OnPositionChangedListener() {
@@ -95,6 +95,9 @@ public class BasicMapActivity extends Activity {
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkPermissions();
+
+        presenter = new HerePresenter();
+        presenter.attachView(this);
         initSearchBar();
     }
 
@@ -107,7 +110,10 @@ public class BasicMapActivity extends Activity {
         }
 
         map = null;
+
+        presenter.detachView();
         super.onDestroy();
+
     }
 
     // Resume positioning listener on wake up
@@ -137,24 +143,12 @@ public class BasicMapActivity extends Activity {
                     boolean handled = false;
 
                     if (actionId == IME_ACTION_SEARCH) {
-                        requestPlaces(searchBar.getText().toString());
+                        presenter.requestPlaces(searchBar.getText().toString(), lastCoordinate);
                         handled = true;
                     }
 
                     return handled;
                 }
-            });
-    }
-
-    private void requestPlaces(final String query) {
-        SearchEngine.request(lastCoordinate, query, new CallBackListener() {
-                @Override
-                public void onSuccess(final DiscoveryResultPage data) {
-                    Toast.makeText(BasicMapActivity.this, "bla " + data.toString(), Toast.LENGTH_LONG).show();
-                }
-
-                @Override
-                public void onError(final ErrorCode errorCode) { }
             });
     }
 
@@ -269,5 +263,15 @@ public class BasicMapActivity extends Activity {
 
     private double getZoomLevel() {
         return map.getMaxZoomLevel() * 0.95;
+    }
+
+    @Override
+    public void displayData() {
+        Toast.makeText(this, "Success", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void showErrorMessage(final String error) {
+        Toast.makeText(this, error, Toast.LENGTH_LONG).show();
     }
 }
