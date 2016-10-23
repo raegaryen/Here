@@ -20,4 +20,8 @@ public interface HereView {
     void showRoute(RouteResult routeResult);
 
     void showErrorMessage(String error);
+
+    void showProgress();
+
+    void hideProgress();
 }

@@ -54,6 +54,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -86,14 +87,17 @@ public class HereActivity extends Activity implements HereView {
     private MapFragment mapFragment = null;
 
     private PositioningManager mPositioningManager;
-    private boolean paused = false;
-    private MapMarker userMarker;
+    private boolean mPaused = false;
+    private MapMarker mUserMarker;
 
-    private GeoCoordinate lastCoordinate;
+    private GeoCoordinate mLastCoordinate;
 
-    private HerePresenter presenter;
+    private HerePresenter mPresenter;
 
     private MapRoute mapRoute;
+
+    private EditText mSearchBar;
+    private ProgressBar mProgressBar;
 
     private PositioningManager.OnPositionChangedListener positionListener =
         new PositioningManager.OnPositionChangedListener() {
@@ -103,8 +107,8 @@ public class HereActivity extends Activity implements HereView {
 
                 // set the center only when the app is in the foreground
                 // to reduce CPU consumption
-                if (!paused) {
-                    lastCoordinate = position.getCoordinate();
+                if (!mPaused) {
+                    mLastCoordinate = position.getCoordinate();
                     map.setCenter(position.getCoordinate(), Map.Animation.LINEAR);
 
                     drawUserPosition();
@@ -120,8 +124,8 @@ public class HereActivity extends Activity implements HereView {
         super.onCreate(savedInstanceState);
         checkPermissions();
 
-        presenter = new HerePresenter();
-        presenter.attachView(this);
+        mPresenter = new HerePresenter();
+        mPresenter.attachView(this);
         initSearchBar();
     }
 
@@ -135,7 +139,7 @@ public class HereActivity extends Activity implements HereView {
 
         map = null;
 
-        presenter.detachView();
+        mPresenter.detachView();
         super.onDestroy();
 
     }
@@ -144,7 +148,7 @@ public class HereActivity extends Activity implements HereView {
     public void onResume() {
         super.onResume();
 
-        paused = false;
+        mPaused = false;
         if (mPositioningManager != null) {
             mPositioningManager.start(PositioningManager.LocationMethod.GPS_NETWORK);
         }
@@ -157,7 +161,7 @@ public class HereActivity extends Activity implements HereView {
         }
 
         super.onPause();
-        paused = true;
+        mPaused = true;
     }
 
     @Override
@@ -168,19 +172,19 @@ public class HereActivity extends Activity implements HereView {
             String id = data.getStringExtra(ACT_RESULT_ID);
             int position = data.getIntExtra(ACT_RESULT_POSITION, 0);
             SnackbarWrapper.make(this, "Return " + id, SnackbarWrapper.Duration.LONG).show();
-            presenter.displayLocationOnMap(id, position);
+            mPresenter.displayLocationOnMap(id, position);
         }
     }
 
     private void initSearchBar() {
-        final EditText searchBar = (EditText) findViewById(R.id.searchBar);
-        searchBar.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+
+        mSearchBar.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                 @Override
                 public boolean onEditorAction(final TextView textView, final int actionId, final KeyEvent keyEvent) {
                     boolean handled = false;
 
                     if (actionId == IME_ACTION_SEARCH) {
-                        presenter.requestPlaces(searchBar.getText().toString(), lastCoordinate);
+                        mPresenter.requestPlaces(mSearchBar.getText().toString(), mLastCoordinate);
                         hideSoftKeyboard();
                         handled = true;
                     }
@@ -203,6 +207,8 @@ public class HereActivity extends Activity implements HereView {
 
     private void initialize() {
         setContentView(R.layout.map_activity);
+        mSearchBar = (EditText) findViewById(R.id.searchBar);
+        mProgressBar = (ProgressBar) findViewById(R.id.progressbar);
 
         // Search for the map fragment to finish setup by calling init().
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapfragment);
@@ -218,7 +224,7 @@ public class HereActivity extends Activity implements HereView {
                         // Set the zoom level to the average between min and max
                         map.setZoomLevel(getZoomLevel());
                         map.setMapScheme(map.getMapSchemes().get(2));
-                        lastCoordinate = map.getCenter();
+                        mLastCoordinate = map.getCenter();
                     } else {
                         Log.e(LOG_TAG, "Cannot initialize MapFragment (" + error + ")");
                     }
@@ -246,14 +252,14 @@ public class HereActivity extends Activity implements HereView {
             map.getPositionIndicator().setVisible(true);
             map.getPositionIndicator().setAccuracyIndicatorVisible(true);
         } else {
-            if (userMarker == null) {
-                userMarker = new MapMarker(lastCoordinate, constructImage(R.drawable.user_loc));
+            if (mUserMarker == null) {
+                mUserMarker = new MapMarker(mLastCoordinate, constructImage(R.drawable.user_loc));
             } else {
-                map.removeMapObject(userMarker);
+                map.removeMapObject(mUserMarker);
             }
 
-            userMarker.setCoordinate(lastCoordinate);
-            map.addMapObject(userMarker);
+            mUserMarker.setCoordinate(mLastCoordinate);
+            map.addMapObject(mUserMarker);
         }
     }
 
@@ -322,7 +328,7 @@ public class HereActivity extends Activity implements HereView {
     public void displayPlaceInMap(final GeoCoordinate coordinate) {
         putMarkerAndClearPreviousMarkers(coordinate);
 
-        // centerCoordinateOnMap(lastCoordinate, coordinate);
+        // centerCoordinateOnMap(mLastCoordinate, coordinate);
     }
 
     @Override
@@ -341,6 +347,16 @@ public class HereActivity extends Activity implements HereView {
         map.zoomTo(geoBoundingBox, Map.Animation.LINEAR, Map.MOVE_PRESERVE_ORIENTATION);
     }
 
+    @Override
+    public void showProgress() {
+        mSearchBar.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void hideProgress() {
+        mSearchBar.setVisibility(View.GONE);
+    }
+
     private void putMarkerAndClearPreviousMarkers(final GeoCoordinate coordinate) {
         map.removeMapObjects(markerList);
         markerList.clear();
@@ -352,10 +368,10 @@ public class HereActivity extends Activity implements HereView {
     private void centerCoordinateOnMap(final GeoCoordinate lastCoordinate, final GeoCoordinate placeCoordinate) {
 
         // @API_SDK :  how to set the bounding box to a Map
-// lastCoordinate.getHeading(placeCoordinate);
+// mLastCoordinate.getHeading(placeCoordinate);
 //
-// GeoCoordinate center = new GeoCoordinate((lastCoordinate.getLatitude() + placeCoordinate.getLatitude()) / 2,
-// (lastCoordinate.getLongitude() + placeCoordinate.getLongitude()) / 2);
+// GeoCoordinate center = new GeoCoordinate((mLastCoordinate.getLatitude() + placeCoordinate.getLatitude()) / 2,
+// (mLastCoordinate.getLongitude() + placeCoordinate.getLongitude()) / 2);
 // map.setCenter(center, Map.Animation.LINEAR);
 
         GeoBoundingBox geoBoundingBox = new GeoBoundingBox(lastCoordinate, placeCoordinate);

@@ -30,12 +30,14 @@ public class HerePresenter implements Presenter<HereView> {
     private CallBackListener searchCallback = new CallBackListener<DiscoveryResultPage, ErrorCode>() {
         @Override
         public void onSuccess(final DiscoveryResultPage data) {
+            mvpView.hideProgress();
             dataList = data.getPlaceLinks();
             mvpView.displayDataInList(TransformerUtil.transform(data.getPlaceLinks()));
         }
 
         @Override
         public void onError(final ErrorCode errorCode) {
+            mvpView.hideProgress();
             mvpView.showErrorMessage(errorCode.name());
         }
     };
@@ -44,12 +46,13 @@ public class HerePresenter implements Presenter<HereView> {
 
         @Override
         public void onSuccess(final List<RouteResult> data) {
-
+            mvpView.hideProgress();
             mvpView.showRoute(data.get(0));     // select the first route
         }
 
         @Override
         public void onError(final RouteManager.Error errorCode) {
+            mvpView.hideProgress();
             mvpView.showErrorMessage(errorCode.name());
         }
     };
@@ -66,6 +69,7 @@ public class HerePresenter implements Presenter<HereView> {
 
     public void requestPlaces(final String query, final GeoCoordinate lastUserCoordinate) {
         this.lastKnownUserCoordinate = lastUserCoordinate;
+        mvpView.showProgress();
         SearchEngine.request(lastUserCoordinate, query, searchCallback);
     }
 
@@ -79,7 +83,7 @@ public class HerePresenter implements Presenter<HereView> {
     public void displayLocationOnMap(final String locationId, final int indexInList) {
 
         mvpView.displayPlaceInMap(dataList.get(indexInList).getPosition());
-
+        mvpView.showProgress();
         calculateRoute(dataList.get(indexInList).getPosition());
     }
 
