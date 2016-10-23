@@ -305,6 +305,10 @@ public class HereActivity extends Activity implements HereView {
         return map.getMaxZoomLevel() * 0.95;
     }
 
+    private double getMeanZoomLevel() {
+        return (map.getMaxZoomLevel() + map.getMinZoomLevel()) / 2;
+    }
+
     @Override
     public void displayDataInList(final ArrayList<PlacePOI> data) {
         SnackbarWrapper.make(this, "Success " + data.size(), SnackbarWrapper.Duration.SHORT).show();
@@ -314,20 +318,28 @@ public class HereActivity extends Activity implements HereView {
 
     @Override
     public void displayPlaceInMap(final GeoCoordinate coordinate) {
-        map.removeMapObjects(mapObjectList);
-        mapObjectList.clear();
-
-        addToList(coordinate);
-        map.addMapObjects(mapObjectList);
+        putMarkerAndClearPreviousMarkers(coordinate);
 
         centerCoordinateOnMap(lastCoordinate, coordinate);
+    }
+
+    private void putMarkerAndClearPreviousMarkers(final GeoCoordinate coordinate) {
+        map.removeMapObjects(markerList);
+        markerList.clear();
+
+        addToList(coordinate);
+        map.addMapObjects(markerList);
     }
 
     private void centerCoordinateOnMap(final GeoCoordinate lastCoordinate, final GeoCoordinate placeCoordinate) {
 
         // @API_SDK :  how to set the bounding box to a Map
         lastCoordinate.getHeading(placeCoordinate);
-        map.setCenter(placeCoordinate, Map.Animation.LINEAR);
+
+        GeoCoordinate center = new GeoCoordinate((lastCoordinate.getLatitude() + placeCoordinate.getLatitude()) / 2,
+                (lastCoordinate.getLongitude() + placeCoordinate.getLongitude()) / 2);
+        map.setCenter(center, Map.Animation.LINEAR);
+        map.setZoomLevel(getMeanZoomLevel(), Map.Animation.LINEAR);
     }
 
     @Override
@@ -335,18 +347,18 @@ public class HereActivity extends Activity implements HereView {
         SnackbarWrapper.make(this, error, SnackbarWrapper.Duration.SHORT).show();
     }
 
-    private List<MapObject> mapObjectList = new ArrayList<>();
+    private List<MapObject> markerList = new ArrayList<>();
 
     // not necessary
     private void displayOnMap(final DiscoveryResultPage data) {
-        map.removeMapObjects(mapObjectList);
-        mapObjectList.clear();
+        map.removeMapObjects(markerList);
+        markerList.clear();
 
         for (PlaceLink result : data.getPlaceLinks()) {
             addToList(result.getPosition());
         }
 
-        map.addMapObjects(mapObjectList);
+        map.addMapObjects(markerList);
         // TODO set the bounding box
     }
 
@@ -354,7 +366,7 @@ public class HereActivity extends Activity implements HereView {
         com.here.android.mpa.common.Image myImage = constructImage(R.drawable.cat_06);
 
         MapMarker myMapMarker = new MapMarker(geoCoordinate, myImage);
-        mapObjectList.add(myMapMarker);
+        markerList.add(myMapMarker);
 
     }
 
