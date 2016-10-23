@@ -4,7 +4,10 @@ import java.io.Serializable;
 
 /**
  * POI = point of interest. Because {@link com.here.android.mpa.search.PlaceLink} is not Serializable or Parcelable.
- * This class is used to pass between Activities
+ * This class is used to pass between Activities.
+ *
+ * <p>Cannot either extends from {@link com.here.android.mpa.search.PlaceLink} as the sub-objects must also be
+ * Serializable
  *
  * <p>NOTE : this class should be Parcelable for performance. But I'm short on time to generate extra code
  *

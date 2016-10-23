@@ -160,7 +160,9 @@ public class HereActivity extends Activity implements HereView {
         // Check which request we're responding to
         if (requestCode == PICK_PLACE_REQUEST_CODE && resultCode == RESULT_OK) {
             String id = data.getStringExtra(ACT_RESULT_ID);
+            int position = data.getIntExtra(ACT_RESULT_POSITION, 0);
             SnackbarWrapper.make(this, "Return " + id, SnackbarWrapper.Duration.LONG).show();
+            presenter.displayLocationOnMap(id, position);
         }
     }
 
@@ -304,10 +306,28 @@ public class HereActivity extends Activity implements HereView {
     }
 
     @Override
-    public void displayData(final ArrayList<PlacePOI> data) {
+    public void displayDataInList(final ArrayList<PlacePOI> data) {
         SnackbarWrapper.make(this, "Success " + data.size(), SnackbarWrapper.Duration.SHORT).show();
 
         startActivityForResult(ListPlaceActivity.createIntent(this, data), PICK_PLACE_REQUEST_CODE);
+    }
+
+    @Override
+    public void displayPlaceInMap(final GeoCoordinate coordinate) {
+        map.removeMapObjects(mapObjectList);
+        mapObjectList.clear();
+
+        addToList(coordinate);
+        map.addMapObjects(mapObjectList);
+
+        centerCoordinateOnMap(lastCoordinate, coordinate);
+    }
+
+    private void centerCoordinateOnMap(final GeoCoordinate lastCoordinate, final GeoCoordinate placeCoordinate) {
+
+        // @API_SDK :  how to set the bounding box to a Map
+        lastCoordinate.getHeading(placeCoordinate);
+        map.setCenter(placeCoordinate, Map.Animation.LINEAR);
     }
 
     @Override

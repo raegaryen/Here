@@ -1,8 +1,11 @@
 package com.raychenon.here.presenter;
 
+import java.util.List;
+
 import com.here.android.mpa.common.GeoCoordinate;
 import com.here.android.mpa.search.DiscoveryResultPage;
 import com.here.android.mpa.search.ErrorCode;
+import com.here.android.mpa.search.PlaceLink;
 
 import com.raychenon.here.http.CallBackListener;
 import com.raychenon.here.http.SearchEngine;
@@ -17,10 +20,15 @@ public class HerePresenter implements Presenter<HereView> {
 
     private HereView mvpView;
 
+    private DiscoveryResultPage discoveryResultPage;
+    private List<PlaceLink> dataList;
+
     private CallBackListener callBackListener = new CallBackListener<DiscoveryResultPage>() {
         @Override
         public void onSuccess(final DiscoveryResultPage data) {
-            mvpView.displayData(TransformerUtil.transform(data.getPlaceLinks()));
+            discoveryResultPage = data;
+            dataList = data.getPlaceLinks();
+            mvpView.displayDataInList(TransformerUtil.transform(data.getPlaceLinks()));
         }
 
         @Override
@@ -39,8 +47,12 @@ public class HerePresenter implements Presenter<HereView> {
         this.mvpView = null;
     }
 
-    public void requestPlaces(final String query, final GeoCoordinate lastCoordinate) {
-        SearchEngine.request(lastCoordinate, query, callBackListener);
+    public void requestPlaces(final String query, final GeoCoordinate lastUserCoordinate) {
+        SearchEngine.request(lastUserCoordinate, query, callBackListener);
+    }
+
+    public void displayLocationOnMap(final String locationId, final int indexInList) {
+        mvpView.displayPlaceInMap(dataList.get(indexInList).getPosition());
     }
 
 }

@@ -2,6 +2,8 @@ package com.raychenon.here.view;
 
 import java.util.ArrayList;
 
+import com.here.android.mpa.common.GeoCoordinate;
+
 import com.raychenon.here.model.PlacePOI;
 
 /**
@@ -10,7 +12,9 @@ import com.raychenon.here.model.PlacePOI;
 
 public interface HereView {
 
-    void displayData(ArrayList<PlacePOI> data);
+    void displayDataInList(ArrayList<PlacePOI> data);
+
+    void displayPlaceInMap(GeoCoordinate coordinate);
 
     void showErrorMessage(String error);
 }
