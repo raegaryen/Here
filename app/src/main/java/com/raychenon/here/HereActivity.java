@@ -32,6 +32,7 @@ import android.Manifest;
 import android.app.Activity;
 
 import android.content.Context;
+import android.content.Intent;
 
 import android.content.pm.PackageManager;
 
@@ -58,6 +59,11 @@ import android.widget.Toast;
  */
 
 public class HereActivity extends Activity implements HereView {
+
+    public static final String ACT_RESULT_ID = "activity_result_id";
+    public static final String ACT_RESULT_POSITION = "activity_result_position";
+    public static final int PICK_PLACE_REQUEST_CODE = 1;
+
     private static final String LOG_TAG = HereActivity.class.getSimpleName();
 
     // permissions request code
@@ -146,6 +152,16 @@ public class HereActivity extends Activity implements HereView {
 
         super.onPause();
         paused = true;
+    }
+
+    @Override
+    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+
+        // Check which request we're responding to
+        if (requestCode == PICK_PLACE_REQUEST_CODE && resultCode == RESULT_OK) {
+            String id = data.getStringExtra(ACT_RESULT_ID);
+            SnackbarWrapper.make(this, "Return " + id, SnackbarWrapper.Duration.LONG).show();
+        }
     }
 
     private void initSearchBar() {
@@ -291,7 +307,8 @@ public class HereActivity extends Activity implements HereView {
     public void displayData(final DiscoveryResultPage data) {
         SnackbarWrapper.make(this, "Success " + data.getPlaceLinks().size(), SnackbarWrapper.Duration.SHORT).show();
 
-        startActivity(ListPlaceActivity.createIntent(this, TransformerUtil.transform(data.getPlaceLinks())));
+        startActivityForResult(ListPlaceActivity.createIntent(this, TransformerUtil.transform(data.getPlaceLinks())),
+            PICK_PLACE_REQUEST_CODE);
     }
 
     @Override

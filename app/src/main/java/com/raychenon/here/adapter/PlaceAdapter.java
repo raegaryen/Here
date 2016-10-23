@@ -34,11 +34,14 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
     private LayoutInflater inflater;
     private List<PlacePOI> items;
     private String distanceMsg;
+    private OnClickItemListener listener;
 
-    public PlaceAdapter(final Activity activity, @NonNull final List<PlacePOI> items) {
+    public PlaceAdapter(final Activity activity, @NonNull final List<PlacePOI> items,
+            final OnClickItemListener listener) {
         distanceMsg = activity.getString(R.string.distance_from);
         inflater = activity.getLayoutInflater();
         this.items = items;
+        this.listener = listener;
     }
 
     @Override
@@ -48,7 +51,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
 
     @Override
     public void onBindViewHolder(final PlaceViewHolder holder, final int position) {
-        PlacePOI item = items.get(position);
+        final PlacePOI item = items.get(position);
         holder.titleTextView.setText(item.title);
 
         Spanned address;
@@ -62,7 +65,12 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
 
         holder.distanceTextView.setText(MessageFormat.format(distanceMsg, item.distance));
         Glide.with(holder.imageView.getContext()).load(item.iconUrl).fitCenter().crossFade().into(holder.imageView);
-
+        holder.container.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(final View v) {
+                    listener.OnPlaceClick(position, item.id);
+                }
+            });
     }
 
     @Override
@@ -76,13 +84,19 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
         public TextView vicinityTextView;
         public TextView distanceTextView;
         public ImageView imageView;
+        public ViewGroup container;
 
         public PlaceViewHolder(final View itemView) {
             super(itemView);
+            container = (ViewGroup) itemView.findViewById(R.id.placeViewholderContainer);
             titleTextView = (TextView) itemView.findViewById(R.id.placeViewholderTitle);
             vicinityTextView = (TextView) itemView.findViewById(R.id.placeViewholderVicinity);
             distanceTextView = (TextView) itemView.findViewById(R.id.placeViewholderDistance);
             imageView = (ImageView) itemView.findViewById(R.id.placeViewholderImage);
         }
+    }
+
+    public interface OnClickItemListener {
+        void OnPlaceClick(int position, String id);
     }
 }
