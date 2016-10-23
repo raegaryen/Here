@@ -1,12 +1,10 @@
 package com.raychenon.here.http;
 
-import com.here.android.mpa.search.ErrorCode;
-
 /**
  * @author  Raymond Chenon
  */
 
-public interface CallBackListener<D> {
+public interface CallBackListener<D, E> {
 
     /**
      * generic can call any data type.
@@ -15,5 +13,5 @@ public interface CallBackListener<D> {
      */
     void onSuccess(D data);
 
-    void onError(ErrorCode errorCode);
+    void onError(E errorCode);
 }

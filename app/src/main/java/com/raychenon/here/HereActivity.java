@@ -19,6 +19,8 @@ import com.here.android.mpa.mapping.Map;
 import com.here.android.mpa.mapping.MapFragment;
 import com.here.android.mpa.mapping.MapMarker;
 import com.here.android.mpa.mapping.MapObject;
+import com.here.android.mpa.mapping.MapRoute;
+import com.here.android.mpa.routing.RouteResult;
 import com.here.android.mpa.search.DiscoveryResultPage;
 import com.here.android.mpa.search.PlaceLink;
 
@@ -320,7 +322,13 @@ public class HereActivity extends Activity implements HereView {
     public void displayPlaceInMap(final GeoCoordinate coordinate) {
         putMarkerAndClearPreviousMarkers(coordinate);
 
-        centerCoordinateOnMap(lastCoordinate, coordinate);
+        // centerCoordinateOnMap(lastCoordinate, coordinate);
+    }
+
+    @Override
+    public void showRoute(final List<RouteResult> routeResultList) {
+        MapRoute mapRoute = new MapRoute(routeResultList.get(0).getRoute());
+        map.addMapObject(mapRoute);
     }
 
     private void putMarkerAndClearPreviousMarkers(final GeoCoordinate coordinate) {
