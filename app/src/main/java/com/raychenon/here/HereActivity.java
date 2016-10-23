@@ -143,6 +143,7 @@ public class HereActivity extends Activity implements HereView {
     // Resume positioning listener on wake up
     public void onResume() {
         super.onResume();
+
         paused = false;
         if (mPositioningManager != null) {
             mPositioningManager.start(PositioningManager.LocationMethod.GPS_NETWORK);
@@ -201,7 +202,7 @@ public class HereActivity extends Activity implements HereView {
     }
 
     private void initialize() {
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.map_activity);
 
         // Search for the map fragment to finish setup by calling init().
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapfragment);
@@ -308,10 +309,6 @@ public class HereActivity extends Activity implements HereView {
 
     private double getZoomLevel() {
         return map.getMaxZoomLevel() * 0.95;
-    }
-
-    private double getMeanZoomLevel() {
-        return (map.getMaxZoomLevel() + map.getMinZoomLevel()) / 2;
     }
 
     @Override

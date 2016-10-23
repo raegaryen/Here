@@ -27,6 +27,7 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="@dimen/activity_vertical_margin"
         android:imeOptions="actionSearch"
+        android:windowSoftInputMode="stateHidden"
         android:background="@drawable/searchbar"
         android:inputType="text"
         />
