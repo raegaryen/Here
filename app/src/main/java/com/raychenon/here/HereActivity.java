@@ -83,8 +83,6 @@ public class HereActivity extends Activity implements HereView {
 
     private HerePresenter presenter;
 
-    private List<MapObject> mapObjectList = new ArrayList<>();
-
     private PositioningManager.OnPositionChangedListener positionListener =
         new PositioningManager.OnPositionChangedListener() {
 
@@ -292,6 +290,17 @@ public class HereActivity extends Activity implements HereView {
     public void displayData(final DiscoveryResultPage data) {
         SnackbarWrapper.make(this, "Success " + data.getPlaceLinks().size(), SnackbarWrapper.Duration.SHORT).show();
 
+    }
+
+    @Override
+    public void showErrorMessage(final String error) {
+        SnackbarWrapper.make(this, error, SnackbarWrapper.Duration.SHORT).show();
+    }
+
+    private List<MapObject> mapObjectList = new ArrayList<>();
+
+    // not necessary
+    private void displayOnMap(final DiscoveryResultPage data) {
         map.removeMapObjects(mapObjectList);
         mapObjectList.clear();
 
@@ -301,12 +310,6 @@ public class HereActivity extends Activity implements HereView {
 
         map.addMapObjects(mapObjectList);
         // TODO set the bounding box
-
-    }
-
-    @Override
-    public void showErrorMessage(final String error) {
-        SnackbarWrapper.make(this, error, SnackbarWrapper.Duration.SHORT).show();
     }
 
     private void addToList(final GeoCoordinate geoCoordinate) {
