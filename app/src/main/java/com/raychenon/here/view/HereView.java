@@ -1,6 +1,8 @@
 package com.raychenon.here.view;
 
-import com.here.android.mpa.search.DiscoveryResultPage;
+import java.util.ArrayList;
+
+import com.raychenon.here.model.PlacePOI;
 
 /**
  * @author  Raymond Chenon
@@ -8,7 +10,7 @@ import com.here.android.mpa.search.DiscoveryResultPage;
 
 public interface HereView {
 
-    void displayData(DiscoveryResultPage data);
+    void displayData(ArrayList<PlacePOI> data);
 
     void showErrorMessage(String error);
 }

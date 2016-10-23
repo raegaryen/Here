@@ -6,6 +6,7 @@ import com.here.android.mpa.search.ErrorCode;
 
 import com.raychenon.here.http.CallBackListener;
 import com.raychenon.here.http.SearchEngine;
+import com.raychenon.here.model.TransformerUtil;
 import com.raychenon.here.view.HereView;
 
 /**
@@ -19,7 +20,7 @@ public class HerePresenter implements Presenter<HereView> {
     private CallBackListener callBackListener = new CallBackListener<DiscoveryResultPage>() {
         @Override
         public void onSuccess(final DiscoveryResultPage data) {
-            mvpView.displayData(data);
+            mvpView.displayData(TransformerUtil.transform(data.getPlaceLinks()));
         }
 
         @Override

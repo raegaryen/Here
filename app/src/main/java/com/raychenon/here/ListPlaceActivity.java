@@ -28,7 +28,7 @@ public class ListPlaceActivity extends Activity {
 
     private RecyclerView recyclerView;
 
-    private ArrayList<PlacePOI> listData;
+    private ArrayList<PlacePOI> listData; // List cannot be put in Bundle, but ArrayList can
 
     public static Intent createIntent(final Context context, final ArrayList<PlacePOI> placeLinks) {
         Intent intent = new Intent(context, ListPlaceActivity.class);
