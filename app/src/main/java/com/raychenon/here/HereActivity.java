@@ -347,12 +347,12 @@ public class HereActivity extends Activity implements HereView {
 
     @Override
     public void showProgress() {
-        mSearchBar.setVisibility(View.VISIBLE);
+        mProgressBar.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void hideProgress() {
-        mSearchBar.setVisibility(View.GONE);
+        mProgressBar.setVisibility(View.GONE);
     }
 
     private void putMarkerAndClearPreviousMarkers(final GeoCoordinate coordinate) {
