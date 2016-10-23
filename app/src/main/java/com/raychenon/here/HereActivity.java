@@ -171,7 +171,6 @@ public class HereActivity extends Activity implements HereView {
         if (requestCode == PICK_PLACE_REQUEST_CODE && resultCode == RESULT_OK) {
             String id = data.getStringExtra(ACT_RESULT_ID);
             int position = data.getIntExtra(ACT_RESULT_POSITION, 0);
-            SnackbarWrapper.make(this, "Return " + id, SnackbarWrapper.Duration.LONG).show();
             mPresenter.displayLocationOnMap(id, position);
         }
     }
@@ -319,7 +318,6 @@ public class HereActivity extends Activity implements HereView {
 
     @Override
     public void displayDataInList(final ArrayList<PlacePOI> data) {
-        SnackbarWrapper.make(this, "Success " + data.size(), SnackbarWrapper.Duration.SHORT).show();
 
         startActivityForResult(ListPlaceActivity.createIntent(this, data), PICK_PLACE_REQUEST_CODE);
     }
