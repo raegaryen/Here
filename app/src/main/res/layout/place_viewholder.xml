@@ -24,6 +24,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@android:color/black"
+            android:textStyle="bold"
             android:layout_gravity="center_vertical"
             tools:text="Here Berlin"/>
     </LinearLayout>
@@ -38,6 +39,7 @@
         android:id="@+id/placeViewholderDistance"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="@android:color/black"
         tools:text="10 m"/>
 
 </LinearLayout>
