@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">And Here We Go</string>
     <string name="search_for">What are you looking for ?</string>
+    <string name="distance_from">{0} m</string>
 </resources>

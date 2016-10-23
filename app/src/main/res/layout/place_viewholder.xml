@@ -3,19 +3,38 @@
     android:orientation="vertical"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:foreground="?android:attr/selectableItemBackground">
 
-    <TextView
-        android:id="@+id/placeViewholderTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/black"
-        tools:text="Here Berlin"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/placeViewholderImage"
+            android:layout_width="@dimen/image_size"
+            android:layout_height="@dimen/image_size"
+            android:src="@drawable/cat_06"/>
+
+        <TextView
+            android:id="@+id/placeViewholderTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            tools:text="Here Berlin"/>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/placeViewholderVicinity"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         tools:text="Invalidenstraße 116, 10115 Berlin"/>
+
+    <TextView
+        android:id="@+id/placeViewholderDistance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="10 m"/>
 
 </LinearLayout>

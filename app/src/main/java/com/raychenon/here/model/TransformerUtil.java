@@ -32,6 +32,7 @@ public class TransformerUtil {
     }
 
     public static PlacePOI transform(final PlaceLink placeLink) {
-        return new PlacePOI(placeLink.getTitle(), placeLink.getVicinity());
+        return new PlacePOI(placeLink.getTitle(), placeLink.getVicinity(), placeLink.getIconUrl(), placeLink.getId(),
+                placeLink.getDistance(), placeLink.getAverageRating());
     }
 }
