@@ -22,8 +22,6 @@ import com.here.android.mpa.mapping.MapMarker;
 import com.here.android.mpa.mapping.MapObject;
 import com.here.android.mpa.mapping.MapRoute;
 import com.here.android.mpa.routing.RouteResult;
-import com.here.android.mpa.search.DiscoveryResultPage;
-import com.here.android.mpa.search.PlaceLink;
 
 import com.raychenon.here.model.PlacePOI;
 import com.raychenon.here.presenter.HerePresenter;
@@ -94,7 +92,9 @@ public class HereActivity extends Activity implements HereView {
 
     private HerePresenter mPresenter;
 
+    // mapRoute and markerList keep a reference of the previous elements on the map to delete them
     private MapRoute mapRoute;
+    private List<MapObject> markerList = new ArrayList<>();
 
     private EditText mSearchBar;
     private ProgressBar mProgressBar;
@@ -222,7 +222,7 @@ public class HereActivity extends Activity implements HereView {
 
                         // Set the zoom level to the average between min and max
                         map.setZoomLevel(getZoomLevel());
-                        map.setMapScheme(map.getMapSchemes().get(2));
+                        map.setMapScheme(map.getMapSchemes().get(2)); // @API_SDK , why the scheme is not an Enum ?
                         mLastCoordinate = map.getCenter();
                     } else {
                         Log.e(LOG_TAG, "Cannot initialize MapFragment (" + error + ")");
@@ -332,7 +332,7 @@ public class HereActivity extends Activity implements HereView {
     @Override
     public void showRoute(final RouteResult routeResult) {
 
-        // delete previous map
+        // delete previous route
         if (mapRoute != null) {
             map.removeMapObject(mapRoute);
         }
@@ -356,6 +356,8 @@ public class HereActivity extends Activity implements HereView {
     }
 
     private void putMarkerAndClearPreviousMarkers(final GeoCoordinate coordinate) {
+
+        // clear the previous markers
         map.removeMapObjects(markerList);
         markerList.clear();
 
@@ -364,13 +366,6 @@ public class HereActivity extends Activity implements HereView {
     }
 
     private void centerCoordinateOnMap(final GeoCoordinate lastCoordinate, final GeoCoordinate placeCoordinate) {
-
-        // @API_SDK :  how to set the bounding box to a Map
-// mLastCoordinate.getHeading(placeCoordinate);
-//
-// GeoCoordinate center = new GeoCoordinate((mLastCoordinate.getLatitude() + placeCoordinate.getLatitude()) / 2,
-// (mLastCoordinate.getLongitude() + placeCoordinate.getLongitude()) / 2);
-// map.setCenter(center, Map.Animation.LINEAR);
 
         GeoBoundingBox geoBoundingBox = new GeoBoundingBox(lastCoordinate, placeCoordinate);
         map.zoomTo(geoBoundingBox, Map.Animation.LINEAR, Map.MOVE_PRESERVE_ORIENTATION);
@@ -381,27 +376,11 @@ public class HereActivity extends Activity implements HereView {
         SnackbarWrapper.make(this, error, SnackbarWrapper.Duration.SHORT).show();
     }
 
-    private List<MapObject> markerList = new ArrayList<>();
-
-    // not necessary
-    private void displayOnMap(final DiscoveryResultPage data) {
-        map.removeMapObjects(markerList);
-        markerList.clear();
-
-        for (PlaceLink result : data.getPlaceLinks()) {
-            addToList(result.getPosition());
-        }
-
-        map.addMapObjects(markerList);
-        // TODO set the bounding box
-    }
-
     private void addToList(final GeoCoordinate geoCoordinate) {
         com.here.android.mpa.common.Image myImage = constructImage(R.drawable.cat_06);
 
         MapMarker myMapMarker = new MapMarker(geoCoordinate, myImage);
         markerList.add(myMapMarker);
-
     }
 
     private Image constructImage(final int resId) {
