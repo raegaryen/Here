@@ -122,10 +122,10 @@ public class HereActivity extends Activity implements HereView {
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        checkPermissions();
 
         mPresenter = new HerePresenter();
         mPresenter.attachView(this);
+        checkPermissions();
         initSearchBar();
     }
 
@@ -245,6 +245,9 @@ public class HereActivity extends Activity implements HereView {
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
     }
+
+    // @API_SDK there is issue with the PositionIndicator being visible, I just put another marker to where the map is
+    // centered
 
     private void drawUserPosition() {
         if (map.getPositionIndicator().isVisible()) {

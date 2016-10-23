@@ -12,3 +12,5 @@ Coding challenge
 ## General infos
 To save time as a developer, I simplified the navigation with between 2 Activities : __MapActivity__ and __ListPlaceActivity__ , a sub-Activity.
 The reason : most map apps display the interaction in a single Activity , the architecture will be more complex with nested Fragments  ... 
+
+__You must accept the permissions Location and External Storage__ otherwise the app will crash.
