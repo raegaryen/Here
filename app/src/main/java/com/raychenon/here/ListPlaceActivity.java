@@ -2,6 +2,7 @@ package com.raychenon.here;
 
 import java.util.ArrayList;
 
+import com.raychenon.here.adapter.DividerItemDecoration;
 import com.raychenon.here.adapter.PlaceAdapter;
 import com.raychenon.here.model.PlacePOI;
 
@@ -46,6 +47,8 @@ public class ListPlaceActivity extends Activity {
 
         recyclerView = (RecyclerView) findViewById(R.id.placesRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.addItemDecoration(new DividerItemDecoration(this,
+                (int) getResources().getDimension(R.dimen.divider_margin))); // for the line divider
 
         PlaceAdapter adapter = new PlaceAdapter(this, listData);
         recyclerView.setAdapter(adapter);

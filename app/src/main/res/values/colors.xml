@@ -7,6 +7,8 @@
     <color name="searchBar">#DDFFFFFF</color>
     <color name="searchBarStroke">#787878</color>
 
+    <color name="divider">#656565</color>
+
     <color name="circleInner">#DE199fff</color>
     <color name="circleOuter">#444444</color>
 
