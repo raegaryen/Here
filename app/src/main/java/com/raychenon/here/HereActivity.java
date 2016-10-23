@@ -22,6 +22,7 @@ import com.here.android.mpa.mapping.MapObject;
 import com.here.android.mpa.search.DiscoveryResultPage;
 import com.here.android.mpa.search.PlaceLink;
 
+import com.raychenon.here.model.TransformerUtil;
 import com.raychenon.here.presenter.HerePresenter;
 import com.raychenon.here.ui.SnackbarWrapper;
 import com.raychenon.here.view.HereView;
@@ -290,6 +291,7 @@ public class HereActivity extends Activity implements HereView {
     public void displayData(final DiscoveryResultPage data) {
         SnackbarWrapper.make(this, "Success " + data.getPlaceLinks().size(), SnackbarWrapper.Duration.SHORT).show();
 
+        startActivity(ListPlaceActivity.createIntent(this, TransformerUtil.transform(data.getPlaceLinks())));
     }
 
     @Override
