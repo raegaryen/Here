@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.here.android.mpa.common.GeoBoundingBox;
 import com.here.android.mpa.common.GeoCoordinate;
 import com.here.android.mpa.common.GeoPosition;
 import com.here.android.mpa.common.Image;
@@ -91,6 +92,8 @@ public class HereActivity extends Activity implements HereView {
     private GeoCoordinate lastCoordinate;
 
     private HerePresenter presenter;
+
+    private MapRoute mapRoute;
 
     private PositioningManager.OnPositionChangedListener positionListener =
         new PositioningManager.OnPositionChangedListener() {
@@ -326,9 +329,19 @@ public class HereActivity extends Activity implements HereView {
     }
 
     @Override
-    public void showRoute(final List<RouteResult> routeResultList) {
-        MapRoute mapRoute = new MapRoute(routeResultList.get(0).getRoute());
+    public void showRoute(final RouteResult routeResult) {
+
+        // delete previous map
+        if (mapRoute != null) {
+            map.removeMapObject(mapRoute);
+        }
+
+        mapRoute = new MapRoute(routeResult.getRoute());
         map.addMapObject(mapRoute);
+
+        // zoom to the zone
+        GeoBoundingBox geoBoundingBox = routeResult.getRoute().getBoundingBox();
+        map.zoomTo(geoBoundingBox, Map.Animation.LINEAR, Map.MOVE_PRESERVE_ORIENTATION);
     }
 
     private void putMarkerAndClearPreviousMarkers(final GeoCoordinate coordinate) {
@@ -342,12 +355,14 @@ public class HereActivity extends Activity implements HereView {
     private void centerCoordinateOnMap(final GeoCoordinate lastCoordinate, final GeoCoordinate placeCoordinate) {
 
         // @API_SDK :  how to set the bounding box to a Map
-        lastCoordinate.getHeading(placeCoordinate);
+// lastCoordinate.getHeading(placeCoordinate);
+//
+// GeoCoordinate center = new GeoCoordinate((lastCoordinate.getLatitude() + placeCoordinate.getLatitude()) / 2,
+// (lastCoordinate.getLongitude() + placeCoordinate.getLongitude()) / 2);
+// map.setCenter(center, Map.Animation.LINEAR);
 
-        GeoCoordinate center = new GeoCoordinate((lastCoordinate.getLatitude() + placeCoordinate.getLatitude()) / 2,
-                (lastCoordinate.getLongitude() + placeCoordinate.getLongitude()) / 2);
-        map.setCenter(center, Map.Animation.LINEAR);
-        map.setZoomLevel(getMeanZoomLevel(), Map.Animation.LINEAR);
+        GeoBoundingBox geoBoundingBox = new GeoBoundingBox(lastCoordinate, placeCoordinate);
+        map.zoomTo(geoBoundingBox, Map.Animation.LINEAR, Map.MOVE_PRESERVE_ORIENTATION);
     }
 
     @Override

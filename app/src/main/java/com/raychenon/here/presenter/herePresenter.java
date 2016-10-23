@@ -46,7 +46,8 @@ public class HerePresenter implements Presenter<HereView> {
 
         @Override
         public void onSuccess(final List<RouteResult> data) {
-            mvpView.showRoute(data);
+
+            mvpView.showRoute(data.get(0));     // select the first route
         }
 
         @Override
