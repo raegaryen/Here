@@ -1,5 +1,7 @@
 package com.raychenon.here.adapter;
 
+import java.text.MessageFormat;
+
 import java.util.List;
 
 import com.bumptech.glide.Glide;
@@ -12,6 +14,9 @@ import android.app.Activity;
 import android.support.annotation.NonNull;
 
 import android.support.v7.widget.RecyclerView;
+
+import android.text.Html;
+import android.text.Spanned;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,8 +50,17 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
     public void onBindViewHolder(final PlaceViewHolder holder, final int position) {
         PlacePOI item = items.get(position);
         holder.titleTextView.setText(item.title);
-        holder.vicinityTextView.setText(item.vicinity);
-        holder.distanceTextView.setText(String.format(distanceMsg, item.distance));
+
+        Spanned address;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            address = Html.fromHtml(item.vicinity, Html.FROM_HTML_MODE_LEGACY);
+        } else {
+            address = Html.fromHtml(item.vicinity);
+        }
+
+        holder.vicinityTextView.setText(address);
+
+        holder.distanceTextView.setText(MessageFormat.format(distanceMsg, item.distance));
         Glide.with(holder.imageView.getContext()).load(item.iconUrl).fitCenter().crossFade().into(holder.imageView);
 
     }
