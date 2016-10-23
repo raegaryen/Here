@@ -23,7 +23,6 @@ public class HerePresenter implements Presenter<HereView> {
 
     private HereView mvpView;
 
-    private DiscoveryResultPage discoveryResultPage;
     private List<PlaceLink> dataList;
 
     private GeoCoordinate lastKnownUserCoordinate;
@@ -31,7 +30,6 @@ public class HerePresenter implements Presenter<HereView> {
     private CallBackListener searchCallback = new CallBackListener<DiscoveryResultPage, ErrorCode>() {
         @Override
         public void onSuccess(final DiscoveryResultPage data) {
-            discoveryResultPage = data;
             dataList = data.getPlaceLinks();
             mvpView.displayDataInList(TransformerUtil.transform(data.getPlaceLinks()));
         }
