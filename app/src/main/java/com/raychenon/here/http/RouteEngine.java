@@ -9,6 +9,8 @@ import com.here.android.mpa.routing.RoutePlan;
 import com.here.android.mpa.routing.RouteResult;
 
 /**
+ * TODO must have Dependency Injection in order to mock for testing.
+ *
  * @author  Raymond Chenon
  */
 

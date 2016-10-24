@@ -7,6 +7,8 @@ import com.here.android.mpa.search.ResultListener;
 import com.here.android.mpa.search.SearchRequest;
 
 /**
+ * TODO must have Dependency Injection in order to mock for testing.
+ *
  * @author  Raymond Chenon
  */
 
