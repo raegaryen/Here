@@ -3,6 +3,9 @@ package com.raychenon.here.model;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Test;
 
 import com.here.android.mpa.search.PlaceLink;
@@ -33,6 +36,20 @@ public class TransformerUtilTest {
         Assert.assertEquals(placeLink.getIconUrl(), placePOI.iconUrl);
         Assert.assertEquals(placeLink.getDistance(), placePOI.distance);
         Assert.assertEquals(placeLink.getId(), placePOI.id);
+    }
+
+    @Test
+    public void transformerKeepListOrder() {
+        String ITEM_1 = "dfhdfh";
+        String ITEM_2 = "hfdjfgj";
+        String ITEM_3 = "dfsfhh";
+
+        List<PlaceLink> placeLinks = Arrays.asList(initPlaceLink(ITEM_1), initPlaceLink(ITEM_2), initPlaceLink(ITEM_3));
+        List<PlacePOI> placePOIs = TransformerUtil.transform(placeLinks);
+
+        Assert.assertEquals(ITEM_1, placePOIs.get(0).id);
+        Assert.assertEquals(ITEM_2, placePOIs.get(1).id);
+        Assert.assertEquals(ITEM_3, placePOIs.get(2).id);
     }
 
     private PlaceLink initPlaceLink(final String id) {
