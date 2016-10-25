@@ -123,10 +123,10 @@ public class HereActivity extends Activity implements HereView {
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        initLayout();
         mPresenter = new HerePresenter();
         mPresenter.attachView(this);
         checkPermissions();
-        initSearchBar();
     }
 
     // To remove the positioning listener
@@ -175,7 +175,21 @@ public class HereActivity extends Activity implements HereView {
         }
     }
 
-    private void initSearchBar() {
+    private void initPosition() {
+        if (mPositioningManager != null) {
+
+            // add the listener to a synchronized object
+            PositioningManager.getInstance().addListener(
+                new WeakReference<PositioningManager.OnPositionChangedListener>(positionListener));
+
+            mPositioningManager = PositioningManager.getInstance();
+        }
+    }
+
+    private void initLayout() {
+        setContentView(R.layout.map_activity);
+        mSearchBar = (EditText) findViewById(R.id.searchBar);
+        mProgressBar = (ProgressBar) findViewById(R.id.progressbar);
 
         mSearchBar.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                 @Override
@@ -193,21 +207,7 @@ public class HereActivity extends Activity implements HereView {
             });
     }
 
-    private void initPosition() {
-        if (mPositioningManager != null) {
-
-            // add the listener to a synchronized object
-            PositioningManager.getInstance().addListener(
-                new WeakReference<PositioningManager.OnPositionChangedListener>(positionListener));
-
-            mPositioningManager = PositioningManager.getInstance();
-        }
-    }
-
     private void initialize() {
-        setContentView(R.layout.map_activity);
-        mSearchBar = (EditText) findViewById(R.id.searchBar);
-        mProgressBar = (ProgressBar) findViewById(R.id.progressbar);
 
         // Search for the map fragment to finish setup by calling init().
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapfragment);
